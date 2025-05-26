@@ -6,11 +6,16 @@ For experimental environment and dataset preparation, please refer to https://gi
 
 ### Training from scratch
 #### For PoseTrack2017
-‘’‘
+```ruby
+require 'redcarpet'
+markdown = Redcarpet.new("Hello World!")
+puts markdown.to_html
+```
+
 cd tools
 # train  
 python run.py --cfg ../configs/posetimation/DcPose/posetrack17/no_supp_targ_vit_large.yaml --train
 
 # val 
 python run.py --cfg ../configs/posetimation/DcPose/posetrack17/no_supp_targ_vit_large.yaml --val 
-’‘’
+
