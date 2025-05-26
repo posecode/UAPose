@@ -3,3 +3,14 @@
 
 ### Environment and datasets
 For experimental environment and dataset preparation, please refer to https://github.com/Pose-Group/DCPose/blob/main/docs/Installation.md
+
+### Training from scratch
+#### For PoseTrack2017
+‘’‘
+cd tools
+# train  
+python run.py --cfg ../configs/posetimation/DcPose/posetrack17/no_supp_targ_vit_large.yaml --train
+
+# val 
+python run.py --cfg ../configs/posetimation/DcPose/posetrack17/no_supp_targ_vit_large.yaml --val 
+’‘’
