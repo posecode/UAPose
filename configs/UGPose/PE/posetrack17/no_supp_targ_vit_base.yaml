@@ -1,0 +1,115 @@
+_BASE_: "../Base_PoseTrack17.yaml"
+EXPERIMENT_NAME: 'UGPose_Network'
+WORKERS: 4
+SEED: 3407
+GPUS: (1,)
+#OUTPUT_DIR: './output/PE/17/'
+OUTPUT_DIR: './output/PE/17/ugpose/vit_base/v16'
+
+
+
+#v1: backbone初始化是coco的multi-coco 预训练0  85.4
+#v2: backbone初始化是我们自己的预训练，即在posetrack上训练的
+#v3 我们不冻结backbone，先用multi-coco作为预训练
+#v3.1 和3一样，把学习率降低到0.00001  效果好了一些81.4366
+#v3.2 依旧是不冻结backbone，但这次在backbone后加上loss，学习率0.00005   81。77
+#我觉得目前可以把backbone不冻结这个选项pass掉，确实只能达到81.几
+
+#v4: 和v2一致冻结backbone，将预训练换成我们自己训练的，在posetrack上训练的  我发现，backbone86.1，但是最终根本达不到86.1，最高也就85。7143
+
+#下面是加了dark
+#v5：使用vitpose-b-coco文件，之前是v1.pth  85.4
+#v6:还是使用v1   85.8
+
+#v8 5帧  85.8
+#v9 7帧 85.6  我怀疑这是因为学习率原因，我换成small的试下
+#v10 7帧 学习率是small的  85.98
+
+#v11 5帧  86.3193
+
+#v12 7帧  86.0
+#v13 5帧  86.25
+
+#v14 9帧 86.15
+
+#v15   15.1 'a'  ;   15.2  'b'   ; 15.3  'c'  ;
+
+# 冻结住backbone：1. 训好的base拿来  2. 没训的base拿来训   ；不冻结backbone：1.直接用没训得base  2.用训好的base
+
+
+CUDNN:
+  BENCHMARK: true
+  DETERMINISTIC: true
+  ENABLED: true
+CORE_FUNCTION: Function_No_Supp_Targ_UGPose
+
+DISTANCE: 4
+
+DATASET:
+#  NAME: "PoseTrack_3_frame"
+  NAME: "PoseTrack_5_frame"
+
+
+MODEL:
+  NAME: UGPOSE
+  BACKBONE_NAME: vit
+  FREEZE_BACKBONE_WEIGHTS: true
+  FRAME_NUM: 7
+
+  VERSION: 'full'
+
+  PRETRAINED: './pretrain/v1.pth'
+#  PRETRAINED: './pretrain/vitpose-b-coco.pth'
+#  PRETRAINED: './pretrain/17/vit_base_17.pth'
+
+  VIT:
+    PATCH_SIZE: 16
+    EMB_DIM: 768
+    DEPTH: 12
+    NUM_HEADS: 12
+    DROP_PATH_RATE: 0.3
+
+    DECONV1_IN_CHN: 768
+    DECONV1_OUT_CHN: 256
+    DECONV2_IN_CHN: 256
+    DECONV2_OUT_CHN: 256
+    FINAL_CONV_IN_CHN: 256
+    FINAL_CONV_OUT_CHN: 17
+
+  HEAD:
+    DECONV1_IN_CHN: 768
+    DECONV1_OUT_CHN: 256
+    DECONV2_IN_CHN: 256
+    DECONV2_OUT_CHN: 128
+    FINAL_CONV_IN_CHN: 128
+    FINAL_CONV_OUT_CHN: 17
+
+
+
+
+LOSS:
+  USE_TARGET_WEIGHT: true
+
+TRAIN:
+  AUTO_RESUME: true
+  LR: 0.0001
+  BEGIN_EPOCH: 0
+  END_EPOCH: 20
+  OPTIMIZER: adamW
+  MILESTONES:
+    - 12
+    - 16
+    - 20
+  GAMMA: 0.2
+  SAVE_MODEL_PER_EPOCH: 1
+  BATCH_SIZE_PER_GPU: 32
+VAL:
+  BATCH_SIZE_PER_GPU: 64
+  MODEL_FILE: ''
+TEST:
+  BATCH_SIZE_PER_GPU: 64
+  MODEL_FILE: ''
+
+DEBUG:
+  VIS_SKELETON: false
+  VIS_BBOX: false

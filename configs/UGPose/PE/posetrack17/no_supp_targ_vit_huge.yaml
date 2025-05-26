@@ -1,0 +1,97 @@
+_BASE_: "../Base_PoseTrack17.yaml"
+EXPERIMENT_NAME: 'UGPose_Network'
+WORKERS: 4
+SEED: 3407
+GPUS: (0,)
+#OUTPUT_DIR: './output/PE/17/'
+OUTPUT_DIR: './output/PE/17/ugpose/vit_huge/vis'
+
+
+#'''
+#v1: multi-coco xuexilv0.0001  87.5
+#v2 降低学习率 0.00001 v2还不如v1 86.6
+#v3 学习率 0.00005 也是很差，86.几
+#v4 学习率 0.0002 第二个epoch 87.64
+#v5
+#'''
+
+#v6 5帧  87.57
+#v7 7帧 87.44
+#v8 7帧  学习率0.0002，第10个epoch开始降  87.64
+
+CUDNN:
+  BENCHMARK: true
+  DETERMINISTIC: true
+  ENABLED: true
+CORE_FUNCTION: Function_No_Supp_Targ_UGPose
+
+
+DISTANCE: 4
+
+DATASET:
+#  NAME: "PoseTrack_3_frame"
+  NAME: "PoseTrack_5_frame"
+
+MODEL:
+  NAME: UGPOSE
+  BACKBONE_NAME: vit
+  FREEZE_BACKBONE_WEIGHTS: true
+  FRAME_NUM: 7
+
+  VERSION: 'full'
+
+#  PRETRAINED: './pretrain/v1.pth'
+  PRETRAINED: './pretrain/v3.pth'
+
+  VIT:
+    PATCH_SIZE: 16
+    EMB_DIM: 1280
+    DEPTH: 32
+    NUM_HEADS: 16
+    DROP_PATH_RATE: 0.55
+
+    DECONV1_IN_CHN: 1280
+    DECONV1_OUT_CHN: 256
+    DECONV2_IN_CHN: 256
+    DECONV2_OUT_CHN: 256
+    FINAL_CONV_IN_CHN: 256
+    FINAL_CONV_OUT_CHN: 17
+
+  HEAD:
+    DECONV1_IN_CHN: 1280
+    DECONV1_OUT_CHN: 256
+    DECONV2_IN_CHN: 256
+    DECONV2_OUT_CHN: 128
+    FINAL_CONV_IN_CHN: 128
+    FINAL_CONV_OUT_CHN: 17
+
+
+
+
+LOSS:
+  USE_TARGET_WEIGHT: true
+
+TRAIN:
+  AUTO_RESUME: true
+  LR: 0.0002
+  BEGIN_EPOCH: 0
+  END_EPOCH: 20
+  OPTIMIZER: adamW
+  MILESTONES:
+    - 8
+    - 12
+    - 16
+  GAMMA: 0.2
+  SAVE_MODEL_PER_EPOCH: 1
+  BATCH_SIZE_PER_GPU: 16
+VAL:
+  BATCH_SIZE_PER_GPU: 32
+  MODEL_FILE: '/home/wzg/DCPose/output/PE/17/ugpose/vit_huge/v6/UGPose_Network/PoseTrack_5_frame/UGPose/checkpoints/epoch_3_state.pth'
+  FLIP_VAL: false
+TEST:
+  BATCH_SIZE_PER_GPU: 64
+  MODEL_FILE: ''
+
+DEBUG:
+  VIS_SKELETON: true
+  VIS_BBOX: false

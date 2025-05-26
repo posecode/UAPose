@@ -1,0 +1,87 @@
+_BASE_: "../Base_PoseTrack17.yaml"
+EXPERIMENT_NAME: 'UGPose_Network'
+WORKERS: 4
+SEED: 3407
+GPUS: (1,)
+#OUTPUT_DIR: './output/PE/17/'
+OUTPUT_DIR: './output/PE/17/ugpose/vit_large/test'
+
+
+
+
+
+CUDNN:
+  BENCHMARK: true
+  DETERMINISTIC: true
+  ENABLED: true
+CORE_FUNCTION: Function_No_Supp_Targ_UGPose
+
+
+DISTANCE: 4
+
+DATASET:
+#  NAME: "PoseTrack_3_frame"
+  NAME: "PoseTrack_5_frame"
+
+MODEL:
+  NAME: UGPOSE
+  BACKBONE_NAME: vit
+  FRAME_NUM: 7
+
+  VERSION: 'full'
+
+  PRETRAINED: './pretrain/v2.pth'
+#  PRETRAINED: './pretrain/vitpose-l.pth'
+#  PRETRAINED: './pretrain/mae_pretrain_vit_large.pth'
+
+  VIT:
+    PATCH_SIZE: 16
+    EMB_DIM: 1024
+    DEPTH: 24
+    NUM_HEADS: 16
+    DROP_PATH_RATE: 0.5
+
+    DECONV1_IN_CHN: 1024
+    DECONV1_OUT_CHN: 256
+    DECONV2_IN_CHN: 256
+    DECONV2_OUT_CHN: 256
+    FINAL_CONV_IN_CHN: 256
+    FINAL_CONV_OUT_CHN: 17
+
+  HEAD:
+    DECONV1_IN_CHN: 1024
+    DECONV1_OUT_CHN: 256
+    DECONV2_IN_CHN: 256
+    DECONV2_OUT_CHN: 128
+    FINAL_CONV_IN_CHN: 128
+    FINAL_CONV_OUT_CHN: 17
+
+
+
+
+LOSS:
+  USE_TARGET_WEIGHT: true
+
+TRAIN:
+  AUTO_RESUME: true
+  LR: 0.0001
+  BEGIN_EPOCH: 0
+  END_EPOCH: 24
+  OPTIMIZER: adamW
+  MILESTONES:
+    - 12
+    - 16
+    - 20
+  GAMMA: 0.2
+  SAVE_MODEL_PER_EPOCH: 1
+  BATCH_SIZE_PER_GPU: 16
+VAL:
+  BATCH_SIZE_PER_GPU: 32
+  MODEL_FILE: ''
+TEST:
+  BATCH_SIZE_PER_GPU: 64
+  MODEL_FILE: ''
+
+DEBUG:
+  VIS_SKELETON: false
+  VIS_BBOX: false

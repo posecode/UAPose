@@ -1,0 +1,117 @@
+_BASE_: "../Base_PoseTrack17.yaml"
+EXPERIMENT_NAME: 'UGPose_Network'
+WORKERS: 4
+SEED: 3407
+GPUS: (1,)
+#OUTPUT_DIR: './output/PE/17/'
+OUTPUT_DIR: './output/PE/17/ugpose/vit_small/v11'
+
+
+#'''
+#v1: 学习率0.0001  84.2834
+# v2 学习率0.0002  84.14
+
+#v3 换成detectors 83.3
+#v4 把seed换成8888 使用co-detr文件 84.50
+#v5 把seed换为3407 使用co-detr文件 84.56
+
+# v6 调model
+# v6.1  k=50  84.34
+# v6.2  k=20  84.45
+# v6.3  k=5   84.29
+# v6.4  k=10  84.51
+
+#v7 换成5帧  84.53
+#v8 换成7帧 85.1
+#v9 换成9帧 85.39
+
+#v10 换成3帧  调model 10.1 'c' 83.7-85.1 ; 10.2 b  83.6-85.2  ; 10.3 a  84.5-84.9
+
+
+#[12,16,20] gamma 0.2 0.0001
+
+#'''
+
+# 冻结住backbone：1. 训好的base拿来  2. 没训的base拿来训   ；不冻结backbone：1.直接用没训得base  2.用训好的base
+
+CUDNN:
+  BENCHMARK: true
+  DETERMINISTIC: true
+  ENABLED: true
+CORE_FUNCTION: Function_No_Supp_Targ_UGPose
+
+DISTANCE: 4
+
+DATASET:
+#  NAME: "PoseTrack_3_frame"
+  NAME: "PoseTrack_5_frame"
+
+MODEL:
+  NAME: UGPOSE
+  BACKBONE_NAME: vit
+  FREEZE_BACKBONE_WEIGHTS: true
+
+  VERSION: 'full'
+  #  FRAME_NUM: 3
+#  FRAME_NUM: 5
+  FRAME_NUM: 7
+
+  PRETRAINED: './pretrain/vitpose-s-coco.pth'
+#  PRETRAINED: './pretrain/mae_pretrain_vit_large.pth'
+#  PRETRAINED: './pretrain/vitpose-s-coco_25.pth'
+#  PRETRAINED: './pretrain/17/vit_base_17.pth'
+
+# v1 : coco
+  # v2 : coco 25
+
+  VIT:
+    PATCH_SIZE: 16
+    EMB_DIM: 384
+    DEPTH: 12
+    NUM_HEADS: 12
+    DROP_PATH_RATE: 0.1
+
+    DECONV1_IN_CHN: 384
+    DECONV1_OUT_CHN: 256
+    DECONV2_IN_CHN: 256
+    DECONV2_OUT_CHN: 256
+    FINAL_CONV_IN_CHN: 256
+    FINAL_CONV_OUT_CHN: 17
+
+  HEAD:
+    DECONV1_IN_CHN: 384
+    DECONV1_OUT_CHN: 256
+    DECONV2_IN_CHN: 256
+    DECONV2_OUT_CHN: 128
+    FINAL_CONV_IN_CHN: 128
+    FINAL_CONV_OUT_CHN: 17
+
+
+
+
+LOSS:
+  USE_TARGET_WEIGHT: true
+
+TRAIN:
+  AUTO_RESUME: true
+  LR: 0.0001
+  BEGIN_EPOCH: 0
+  END_EPOCH: 24
+  OPTIMIZER: adamW
+  MILESTONES:
+    - 12
+    - 16
+    - 20
+  GAMMA: 0.2
+  SAVE_MODEL_PER_EPOCH: 1
+  BATCH_SIZE_PER_GPU: 64
+VAL:
+  BATCH_SIZE_PER_GPU: 64
+  MODEL_FILE: ''
+TEST:
+  BATCH_SIZE_PER_GPU: 64
+  MODEL_FILE: ''
+
+DEBUG:
+  VIS_SKELETON: false
+  VIS_BBOX: false
